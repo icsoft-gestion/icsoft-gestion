@@ -1,0 +1,17 @@
+{
+  "name": "ICSoft Gestion",
+  "short_name": "ICSoft",
+  "description": "Application de gestion commerciale",
+  "start_url": "/icsoft-gestion/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#D4AF37",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

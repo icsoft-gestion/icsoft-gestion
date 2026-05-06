@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#D4AF37">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ICSoft Boutique</title>
@@ -12,7 +14,7 @@
 <body>
   <div id="alerte-peremption" style="display:none">
   <div class="alerte-contenu">
-    <span>⚠️</span>
+    <span></span>
     <span id="alerte-texte"></span>
     <button onclick="document.getElementById('alerte-peremption').style.display='none'">✕</button>
   </div>
@@ -45,7 +47,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>📋 Historique ventes</h1>
+        <h1> Historique ventes</h1>
       </header>
       <main>
   <div id="liste-historique" class="liste-conteneur">
@@ -59,7 +61,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>📈 Chiffre d'affaires</h1>
+        <h1> Chiffre d'affaires</h1>
       </header>
       <main>
   <div class="formulaire">
@@ -111,7 +113,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>🛒 Ajouter une vente</h1>
+        <h1> Ajouter une vente</h1>
       </header>
       <main>
   <div class="formulaire">
@@ -207,7 +209,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>📦 Afficher le stock</h1>
+        <h1> Afficher le stock</h1>
       </header>
       <main>
   <div id="liste-stock" class="liste-conteneur">
@@ -221,7 +223,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>✅ Disponibilité produit</h1>
+        <h1> Disponibilité produit</h1>
       </header>
       <main>
   <div class="formulaire">
@@ -239,7 +241,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>📊 Informations ventes</h1>
+        <h1> Informations ventes</h1>
       </header>
       <main>
   <div class="formulaire">
@@ -255,7 +257,7 @@
     </div>
     <div id="infos-resultat"></div>
     <button id="btn-imprimer" class="btn-imprimer" style="display:none" onclick="imprimerBilan()">
-      🖨️ Imprimer le bilan
+       Imprimer le bilan
     </button>
   </div>
 </main>
@@ -266,7 +268,7 @@
     <div class="page-interne">
       <header>
         <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-        <h1>💰 Gain</h1>
+        <h1> Gain</h1>
       </header>
       <main>
   <div class="formulaire">
@@ -291,7 +293,7 @@
   <div class="page-interne">
     <header>
       <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
-      <h1>➕ Ajouter au stock</h1>
+      <h1> Ajouter au stock</h1>
     </header>
     <main>
       <div class="formulaire">
@@ -395,7 +397,7 @@
     </div>
 
     <div class="apropos-carte">
-      <div class="apropos-section-titre">👨‍💻 Développeur</div>
+      <div class="apropos-section-titre"> Développeur</div>
       <div class="apropos-ligne">
         <span>Nom</span>
         <span>Ivan Charly</span>
@@ -479,7 +481,7 @@ function ajouterProduit() {
   var peremption = document.getElementById('stock-peremption').value;
 
   if (nom === '' || prix === '' || quantite === '') {
-    document.getElementById('stock-message').innerHTML = '⚠️ Remplis tous les champs obligatoires.';
+    document.getElementById('stock-message').innerHTML = ' Remplis tous les champs obligatoires.';
     document.getElementById('stock-message').style.color = '#e63946';
     return;
   }
@@ -506,7 +508,7 @@ function ajouterProduit() {
   };
 
   ajout.onerror = function() {
-    document.getElementById('stock-message').innerHTML = '⚠️ Ce produit existe déjà !';
+    document.getElementById('stock-message').innerHTML = ' Ce produit existe déjà !';
     document.getElementById('stock-message').style.color = '#e63946';
   };
 }
@@ -580,18 +582,18 @@ function calculerTotal() {
 
 function enregistrerVente() {
   if (!produitSelectionne) {
-    document.getElementById('vente-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('vente-message').innerHTML = ' Sélectionne un produit.';
     document.getElementById('vente-message').style.color = '#e63946';
     return;
   }
   var quantite = parseFloat(document.getElementById('vente-quantite').value);
   if (!quantite || quantite <= 0) {
-    document.getElementById('vente-message').innerHTML = '⚠️ Entrez une quantité valide.';
+    document.getElementById('vente-message').innerHTML = ' Entrez une quantité valide.';
     document.getElementById('vente-message').style.color = '#e63946';
     return;
   }
   if (quantite > produitSelectionne.quantite) {
-    document.getElementById('vente-message').innerHTML = '⚠️ Stock insuffisant !';
+    document.getElementById('vente-message').innerHTML = ' Stock insuffisant !';
     document.getElementById('vente-message').style.color = '#e63946';
     return;
   }
@@ -890,7 +892,7 @@ function ajouterDepense() {
   var description = document.getElementById('dep-description').value.trim();
   var montant = parseFloat(document.getElementById('dep-montant').value);
   if (!description || !montant || montant <= 0) {
-    document.getElementById('dep-message').innerHTML = '⚠️ Remplis tous les champs.';
+    document.getElementById('dep-message').innerHTML = ' Remplis tous les champs.';
     document.getElementById('dep-message').style.color = '#e63946';
     return;
   }
@@ -1024,7 +1026,7 @@ function afficherTopProduit() {
 
       resultat.innerHTML =
         '<div class="produit-carte">' +
-        '<div class="produit-nom">🏆 ' + top + '</div>' +
+        '<div class="produit-nom"> ' + top + '</div>' +
         '<div class="produit-info"><span>Quantité vendue</span><span>' + produits[top].quantite + '</span></div>' +
         '<div class="produit-info"><span>Total généré</span><span>' + produits[top].total + ' FCFA</span></div>' +
         '</div>';
@@ -1068,13 +1070,13 @@ function rechercherParamPrix(valeur) {
 
 function modifierPrix() {
   if (!produitParamPrix) {
-    document.getElementById('param-prix-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('param-prix-message').innerHTML = ' Sélectionne un produit.';
     document.getElementById('param-prix-message').style.color = '#e63946';
     return;
   }
   var nouveauPrix = parseFloat(document.getElementById('param-prix-valeur').value);
   if (!nouveauPrix || nouveauPrix <= 0) {
-    document.getElementById('param-prix-message').innerHTML = '⚠️ Entre un prix valide.';
+    document.getElementById('param-prix-message').innerHTML = ' Entre un prix valide.';
     document.getElementById('param-prix-message').style.color = '#e63946';
     return;
   }
@@ -1124,13 +1126,13 @@ function rechercherParamPer(valeur) {
 
 function modifierPeremption() {
   if (!produitParamPer) {
-    document.getElementById('param-per-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('param-per-message').innerHTML = ' Sélectionne un produit.';
     document.getElementById('param-per-message').style.color = '#e63946';
     return;
   }
   var nouvelleDate = document.getElementById('param-per-date').value;
   if (!nouvelleDate) {
-    document.getElementById('param-per-message').innerHTML = '⚠️ Entre une date valide.';
+    document.getElementById('param-per-message').innerHTML = ' Entre une date valide.';
     document.getElementById('param-per-message').style.color = '#e63946';
     return;
   }
@@ -1148,7 +1150,7 @@ function modifierPeremption() {
 }
 
 function reinitialiser() {
-  if (!confirm('⚠️ Attention ! Toutes les données seront effacées. Continuer ?')) return;
+  if (!confirm(' Attention ! Toutes les données seront effacées. Continuer ?')) return;
   var trans = maBase.transaction(['produits', 'ventes', 'depenses'], 'readwrite');
   trans.objectStore('produits').clear();
   trans.objectStore('ventes').clear();
@@ -1184,7 +1186,7 @@ function verifierPeremption() {
     } else {
       if (produitsAlert.length > 0) {
         document.getElementById('alerte-texte').textContent = 
-          '⚠️ Produits qui expirent bientôt : ' + produitsAlert.join(' | ');
+          ' Produits qui expirent bientôt : ' + produitsAlert.join(' | ');
         document.getElementById('alerte-peremption').style.display = 'block';
       }
     }
@@ -1241,7 +1243,7 @@ function exporterDonnees() {
 function importerDonnees() {
   var fichier = document.getElementById('fichier-import').files[0];
   if (!fichier) {
-    document.getElementById('import-message').innerHTML = '⚠️ Choisis un fichier.';
+    document.getElementById('import-message').innerHTML = ' Choisis un fichier.';
     document.getElementById('import-message').style.color = '#e63946';
     return;
   }
@@ -1274,7 +1276,7 @@ function importerDonnees() {
         document.getElementById('import-message').style.color = '#2dc653';
       };
     } catch(err) {
-      document.getElementById('import-message').innerHTML = '⚠️ Fichier invalide.';
+      document.getElementById('import-message').innerHTML = ' Fichier invalide.';
       document.getElementById('import-message').style.color = '#e63946';
     }
   };
