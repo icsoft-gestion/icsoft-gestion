@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" ry="80" fill="#000000"/>
+  <polygon points="100,210 256,100 412,210" fill="#D4AF37"/>
+  <rect x="130" y="210" width="252" height="170" fill="#D4AF37" opacity="0.15" stroke="#D4AF37" stroke-width="6"/>
+  <rect x="216" y="290" width="80" height="90" rx="8" fill="#D4AF37"/>
+  <rect x="150" y="240" width="55" height="55" rx="6" fill="none" stroke="#D4AF37" stroke-width="5"/>
+  <line x1="177" y1="240" x2="177" y2="295" stroke="#D4AF37" stroke-width="3"/>
+  <line x1="150" y1="267" x2="205" y2="267" stroke="#D4AF37" stroke-width="3"/>
+  <rect x="307" y="240" width="55" height="55" rx="6" fill="none" stroke="#D4AF37" stroke-width="5"/>
+  <line x1="334" y1="240" x2="334" y2="295" stroke="#D4AF37" stroke-width="3"/>
+  <line x1="307" y1="267" x2="362" y2="267" stroke="#D4AF37" stroke-width="3"/>
+  <rect x="130" y="205" width="252" height="38" fill="#D4AF37"/>
+  <text x="256" y="231" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#000000">ICSoft</text>
+  <rect x="110" y="378" width="292" height="12" rx="4" fill="#D4AF37"/>
+  <polyline points="340,355 365,330 390,340 415,310" fill="none" stroke="#D4AF37" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="415" cy="310" r="7" fill="#D4AF37"/>
+</svg>
