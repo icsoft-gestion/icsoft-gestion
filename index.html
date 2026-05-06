@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICSoft Boutique</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  
+</head>
+<body>
+  <div id="alerte-peremption" style="display:none">
+  <div class="alerte-contenu">
+    <span>⚠️</span>
+    <span id="alerte-texte"></span>
+    <button onclick="document.getElementById('alerte-peremption').style.display='none'">✕</button>
+  </div>
+</div>
+
+  <div id="page-accueil">
+    <header>
+      <h1>🏪 ICSoft Boutique</h1>
+      <p>Système de gestion commerciale</p>
+      <p>Développé par Ivan Charly</p>
+    </header>
+    <main>
+      <button class="btn-accueil" onclick="allerVers('page-historique');afficherHistorique()"> Historique ventes</button>
+      <button class="btn-accueil" onclick="allerVers('page-ca');afficherCA()"> Chiffre d'affaires</button>
+      <button class="btn-accueil" onclick="allerVers('page-vente')"> Ajouter une vente</button>
+      <button class="btn-accueil" onclick="allerVers('page-recherche')"> Sauvegarde</button>
+      <button class="btn-accueil" onclick="allerVers('page-top')"> Produit plus vendu</button>
+      <button class="btn-accueil" onclick="allerVers('page-stock');afficherStock()"> Afficher le stock</button>
+      <button class="btn-accueil" onclick="allerVers('page-dispo')"> Disponibilité produit</button>
+      <button class="btn-accueil" onclick="allerVers('page-infos')"> Informations ventes</button>
+      <button class="btn-accueil" onclick="allerVers('page-gain');calculerGain()"> Gain</button>
+      <button class="btn-accueil" onclick="allerVers('page-ajouter-stock')"> Ajouter au stock</button>
+      <button class="btn-accueil" onclick="allerVers('page-parametres')">⚙️ Paramètres</button>
+      <button class="btn-accueil" onclick="allerVers('page-apropos')">ℹ️ À propos</button>
+      
+    </main>
+  </div>
+
+  <div id="page-historique" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>📋 Historique ventes</h1>
+      </header>
+      <main>
+  <div id="liste-historique" class="liste-conteneur">
+    <p class="vide-msg">Aucune vente enregistrée.</p>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-ca" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>📈 Chiffre d'affaires</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+
+    <div class="ca-cartes">
+      <div class="ca-carte verte">
+        <div class="ca-montant" id="ca-ventes">0 FCFA</div>
+        <div class="ca-label">Total ventes</div>
+      </div>
+      <div class="ca-carte rouge">
+        <div class="ca-montant" id="ca-depenses-total">0 FCFA</div>
+        <div class="ca-label">Total dépenses</div>
+      </div>
+      <div class="ca-carte or">
+        <div class="ca-montant" id="ca-gain">0 FCFA</div>
+        <div class="ca-label">Gain réel</div>
+      </div>
+    </div>
+
+    <div class="options-groupe">
+      <button class="btn-option actif" onclick="setCAMode('jour', this)">Aujourd'hui</button>
+      <button class="btn-option" onclick="setCAMode('mois', this)">Ce mois</button>
+      <button class="btn-option" onclick="setCAMode('annee', this)">Cette année</button>
+    </div>
+
+    <div id="ca-graphique" class="graphique-conteneur" height="200"></div>
+
+    <div class="separateur">Ajouter une dépense</div>
+
+    <div class="champ">
+      <label>Description</label>
+      <input type="text" id="dep-description" placeholder="Ex: Loyer, électricité..." />
+    </div>
+    <div class="champ">
+      <label>Montant (FCFA)</label>
+      <input type="number" id="dep-montant" placeholder="0" />
+    </div>
+    <button class="btn-valider" onclick="ajouterDepense()">
+      Enregistrer la dépense
+    </button>
+    <div id="dep-message"></div>
+
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-vente" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>🛒 Ajouter une vente</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+    <div class="champ">
+      <label>Produit</label>
+      <input type="text" id="vente-produit" placeholder="Tapez le nom..." oninput="rechercherProduit(this.value)" autocomplete="off" />
+      <div id="suggestions" class="suggestions"></div>
+    </div>
+    <div class="champ">
+      <label>Prix unitaire (FCFA)</label>
+      <input type="number" id="vente-prix" placeholder="0" readonly />
+    </div>
+    <div class="champ">
+      <label>Quantité vendue</label>
+      <input type="number" id="vente-quantite" placeholder="0" oninput="calculerTotal()" />
+    </div>
+    <div class="champ">
+      <label>Total</label>
+      <div id="vente-total" class="total-affichage">0 FCFA</div>
+    </div>
+    <button class="btn-valider" onclick="enregistrerVente()"> Enregistrer la vente</button>
+      <button class="btn-valider btn-pdf" id="btn-recu" style="display:none; background: linear-gradient(135deg, #e63946, #b5272f);" onclick="genererRecu()">
+   Générer le reçu PDF
+</button>
+    
+    </button>
+    <div id="vente-message"></div>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-recherche" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>Sauvegarde des données</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+
+    <div class="separateur"> Exporter les données</div>
+    <p style="color:#c8d0e0; font-size:0.85rem; margin-bottom:10px;">
+      Télécharge un fichier avec tous tes produits et ventes. Garde ce fichier en lieu sûr.
+    </p>
+    <button class="btn-valider" onclick="exporterDonnees()">
+       Télécharger la sauvegarde
+    </button>
+    <div id="export-message"></div>
+
+    <div class="separateur"> Importer les données</div>
+    <p style="color:#c8d0e0; font-size:0.85rem; margin-bottom:10px;">
+      Si tu as perdu tes données, charge ton fichier de sauvegarde ici.
+    </p>
+    <div class="champ">
+      <label>Choisir le fichier de sauvegarde</label>
+      <input type="file" id="fichier-import" accept=".json" class="input-champ" />
+    </div>
+    <button class="btn-valider" style="background: linear-gradient(135deg, #f77f00, #c46200);" onclick="importerDonnees()">
+       Restaurer les données
+    </button>
+    <div id="import-message"></div>
+
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-top" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1> Produit plus vendu</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+    <div class="options-groupe">
+      <button class="btn-option actif" onclick="setTopMode('jour', this)">Par jour</button>
+      <button class="btn-option" onclick="setTopMode('mois', this)">Par mois</button>
+    </div>
+    <div id="top-date-champ" class="champ">
+      <label id="top-date-label">Choisir une date</label>
+      <input type="date" id="top-date" />
+      <button class="btn-valider" onclick="afficherTopProduit()">Voir</button>
+    </div>
+    <div id="top-resultat"></div>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-stock" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>📦 Afficher le stock</h1>
+      </header>
+      <main>
+  <div id="liste-stock" class="liste-conteneur">
+    <p class="vide-msg">Stock vide.</p>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-dispo" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>✅ Disponibilité produit</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+    <div class="champ">
+      <input type="text" id="dispo-recherche" placeholder="Tapez le nom du produit..." oninput="rechercherDispo(this.value)" autocomplete="off" />
+      <div id="dispo-suggestions" class="suggestions"></div>
+    </div>
+    <div id="dispo-resultat"></div>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-infos" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>📊 Informations ventes</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+    <div class="options-groupe">
+      <button class="btn-option actif" onclick="setInfosMode('jour', this)">Par jour</button>
+      <button class="btn-option" onclick="setInfosMode('mois', this)">Par mois</button>
+      <button class="btn-option" onclick="setInfosMode('annee', this)">Cette année</button>
+    </div>
+    <div id="infos-date-champ" class="champ">
+      <label id="infos-date-label">Choisir une date</label>
+      <input type="date" id="infos-date" />
+      <button class="btn-valider" onclick="afficherInfosVentes()">Voir le bilan</button>
+    </div>
+    <div id="infos-resultat"></div>
+    <button id="btn-imprimer" class="btn-imprimer" style="display:none" onclick="imprimerBilan()">
+      🖨️ Imprimer le bilan
+    </button>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-gain" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>💰 Gain</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+    <div class="options-groupe">
+      <button class="btn-option actif" onclick="setGainMode('jour', this)">Aujourd'hui</button>
+      <button class="btn-option" onclick="setGainMode('mois', this)">Ce mois</button>
+      <button class="btn-option" onclick="setGainMode('annee', this)">Cette année</button>
+      <button class="btn-option" onclick="setGainMode('custom', this)">Choisir date</button>
+    </div>
+    <div id="gain-date-champ" class="champ" style="display:none">
+      <label>Choisir une date</label>
+      <input type="date" id="gain-date" />
+      <button class="btn-valider" onclick="calculerGain()">Voir</button>
+    </div>
+    <div id="gain-resultat" class="gain-carte"></div>
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-ajouter-stock" style="display:none">
+  <div class="page-interne">
+    <header>
+      <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+      <h1>➕ Ajouter au stock</h1>
+    </header>
+    <main>
+      <div class="formulaire">
+        <div class="champ">
+          <label>Nom du produit</label>
+          <input type="text" id="stock-nom" placeholder="Ex: Riz importé 5kg" />
+        </div>
+        <div class="champ">
+          <label>Prix de vente (FCFA)</label>
+          <input type="number" id="stock-prix" placeholder="0" />
+        </div>
+        <div class="champ">
+          <label>Quantité</label>
+          <input type="number" id="stock-quantite" placeholder="0" />
+        </div>
+        <div class="champ">
+          <label>Unité de mesure</label>
+          <select id="stock-unite">
+            <option value="pièce">Pièce</option>
+            <option value="kg">Kilogramme (kg)</option>
+            <option value="litre">Litre</option>
+            <option value="sac 25kg">Sac 25kg</option>
+            <option value="sac 50kg">Sac 50kg</option>
+            <option value="carton">Carton</option>
+            <option value="bouteille">Bouteille</option>
+            <option value="sachet">Sachet</option>
+          </select>
+        </div>
+        <div class="champ">
+          <label>Date de péremption</label>
+          <input type="date" id="stock-peremption" />
+        </div>
+        <button class="btn-valider" onclick="ajouterProduit()">
+          Enregistrer le produit
+        </button>
+        <div id="stock-message"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+  <div id="page-parametres" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>⚙️ Paramètres</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+
+    <div class="separateur">Modifier le prix d'un produit</div>
+    <div class="champ">
+      <label>Rechercher le produit</label>
+      <input type="text" id="param-prix-nom" placeholder="Tapez le nom..." oninput="rechercherParamPrix(this.value)" autocomplete="off" />
+      <div id="param-prix-suggestions" class="suggestions"></div>
+    </div>
+    <div class="champ">
+      <label>Nouveau prix (FCFA)</label>
+      <input type="number" id="param-prix-valeur" placeholder="0" />
+    </div>
+    <button class="btn-valider" onclick="modifierPrix()">Enregistrer le nouveau prix</button>
+    <div id="param-prix-message"></div>
+
+    <div class="separateur">Modifier la date de péremption</div>
+    <div class="champ">
+      <label>Rechercher le produit</label>
+      <input type="text" id="param-per-nom" placeholder="Tapez le nom..." oninput="rechercherParamPer(this.value)" autocomplete="off" />
+      <div id="param-per-suggestions" class="suggestions"></div>
+    </div>
+    <div class="champ">
+      <label>Nouvelle date de péremption</label>
+      <input type="date" id="param-per-date" />
+    </div>
+    <button class="btn-valider" onclick="modifierPeremption()">Enregistrer la péremption</button>
+    <div id="param-per-message"></div>
+
+    <div class="separateur">Réinitialisation</div>
+    <button class="btn-valider" style="background: linear-gradient(135deg, #e63946, #b5272f);" onclick="reinitialiser()">
+      🗑️ Effacer toutes les données
+    </button>
+    <div id="param-reinit-message"></div>
+
+  </div>
+</main>
+    </div>
+  </div>
+
+  <div id="page-apropos" style="display:none">
+    <div class="page-interne">
+      <header>
+        <button class="btn-retour" onclick="allerVers('page-accueil')">Retour</button>
+        <h1>ℹ️ À propos</h1>
+      </header>
+      <main>
+  <div class="formulaire">
+    <div class="apropos-carte">
+      <div class="apropos-logo">🏪</div>
+      <h2 class="apropos-titre">ICSoft Boutique</h2>
+      <p class="apropos-desc">Système de gestion commerciale pour boutiques et épiceries</p>
+      <div class="apropos-version">Version 1.0.0</div>
+    </div>
+
+    <div class="apropos-carte">
+      <div class="apropos-section-titre">👨‍💻 Développeur</div>
+      <div class="apropos-ligne">
+        <span>Nom</span>
+        <span>Ivan Charly</span>
+      </div>
+      <div class="apropos-ligne">
+        <span>Pays</span>
+        <span>🇧🇫 Burkina Faso</span>
+      </div>
+      <div class="apropos-ligne">
+        <span>Année</span>
+        <span>2026</span>
+      </div>
+    </div>
+
+    <div class="apropos-carte">
+      <div class="apropos-section-titre">📞 Contact</div>
+      <p class="apropos-contact-msg">Pour acheter ce logiciel ou pour toute assistance, contactez le développeur :</p>
+      <a href="tel:+22654974818" class="btn-appeler">
+        📞 +226 54 97 48 18
+      </a>
+    </div>
+
+    <div class="apropos-carte">
+      <div class="apropos-section-titre">⚙️ Technique</div>
+      <div class="apropos-ligne">
+        <span>Technologie</span>
+        <span>HTML / CSS / JS</span>
+      </div>
+      <div class="apropos-ligne">
+        <span>Base de données</span>
+        <span>IndexedDB</span>
+      </div>
+      <div class="apropos-ligne">
+        <span>Fonctionne</span>
+        <span>Sans connexion</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+    </div>
+  </div>
+
+  <script>
+   
+    var maBase;
+var ouverture = indexedDB.open('ICSoftBoutique', 4);
+
+ouverture.onupgradeneeded = function(e) {
+  maBase = e.target.result;
+  if (!maBase.objectStoreNames.contains('produits')) {
+    maBase.createObjectStore('produits', { keyPath: 'nom' });
+  }
+  if (!maBase.objectStoreNames.contains('ventes')) {
+    var ventes = maBase.createObjectStore('ventes', { autoIncrement: true });
+    ventes.createIndex('date', 'date', { unique: false });
+  }
+  if (!maBase.objectStoreNames.contains('depenses')) {
+    var depenses = maBase.createObjectStore('depenses', { autoIncrement: true });
+    depenses.createIndex('date', 'date', { unique: false });
+  }
+};
+
+ouverture.onsuccess = function(e) {
+  maBase = e.target.result;
+  verifierPeremption();
+};
+
+function allerVers(pageId) {
+  var pages = document.querySelectorAll('div[id^="page-"]');
+  pages.forEach(function(p) { p.style.display = 'none'; });
+  document.getElementById(pageId).style.display = 'block';
+}
+
+function ajouterProduit() {
+  var nom = document.getElementById('stock-nom').value.trim();
+  nom = nom.charAt(0).toUpperCase() + nom.slice(1).toLowerCase();
+  var prix = document.getElementById('stock-prix').value;
+  var quantite = document.getElementById('stock-quantite').value;
+  var unite = document.getElementById('stock-unite').value;
+  var peremption = document.getElementById('stock-peremption').value;
+
+  if (nom === '' || prix === '' || quantite === '') {
+    document.getElementById('stock-message').innerHTML = '⚠️ Remplis tous les champs obligatoires.';
+    document.getElementById('stock-message').style.color = '#e63946';
+    return;
+  }
+
+  var produit = {
+    nom: nom,
+    prix: parseFloat(prix),
+    quantite: parseFloat(quantite),
+    unite: unite,
+    peremption: peremption
+  };
+
+  var trans = maBase.transaction(['produits'], 'readwrite');
+  var store = trans.objectStore('produits');
+  var ajout = store.add(produit);
+
+  ajout.onsuccess = function() {
+    document.getElementById('stock-message').innerHTML = '✅ Produit ajouté avec succès !';
+    document.getElementById('stock-message').style.color = '#2dc653';
+    document.getElementById('stock-nom').value = '';
+    document.getElementById('stock-prix').value = '';
+    document.getElementById('stock-quantite').value = '';
+    document.getElementById('stock-peremption').value = '';
+  };
+
+  ajout.onerror = function() {
+    document.getElementById('stock-message').innerHTML = '⚠️ Ce produit existe déjà !';
+    document.getElementById('stock-message').style.color = '#e63946';
+  };
+}
+
+function afficherStock() {
+  var liste = document.getElementById('liste-stock');
+  liste.innerHTML = '';
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+  var count = 0;
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      count++;
+      var p = cursor.value;
+      var carte = document.createElement('div');
+      carte.className = 'produit-carte';
+      carte.innerHTML =
+        '<div class="produit-nom">' + p.nom + '</div>' +
+        '<div class="produit-info"><span>Prix</span><span>' + p.prix + ' FCFA</span></div>' +
+        '<div class="produit-info"><span>Quantité</span><span>' + p.quantite + ' ' + p.unite + '</span></div>' +
+        '<div class="produit-info"><span>Péremption</span><span>' + (p.peremption || 'Non définie') + '</span></div>';
+      liste.appendChild(carte);
+      cursor.continue();
+    } else {
+      if (count === 0) liste.innerHTML = '<p class="vide-msg">Stock vide.</p>';
+    }
+  };
+}
+
+var produitSelectionne = null;
+
+function rechercherProduit(valeur) {
+  var suggestions = document.getElementById('suggestions');
+  suggestions.innerHTML = '';
+  produitSelectionne = null;
+  if (valeur.trim() === '') return;
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var nom = cursor.value.nom.toLowerCase();
+      if (nom.indexOf(valeur.toLowerCase()) !== -1) {
+        (function(produit) {
+          var item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.textContent = produit.nom + ' — ' + produit.prix + ' FCFA';
+          item.onclick = function() {
+            produitSelectionne = produit;
+            document.getElementById('vente-produit').value = produit.nom;
+            document.getElementById('vente-prix').value = produit.prix;
+            suggestions.innerHTML = '';
+            calculerTotal();
+          };
+          suggestions.appendChild(item);
+        })(cursor.value);
+      }
+      cursor.continue();
+    }
+  };
+}
+
+function calculerTotal() {
+  var prix = parseFloat(document.getElementById('vente-prix').value) || 0;
+  var quantite = parseFloat(document.getElementById('vente-quantite').value) || 0;
+  document.getElementById('vente-total').textContent = (prix * quantite) + ' FCFA';
+}
+
+function enregistrerVente() {
+  if (!produitSelectionne) {
+    document.getElementById('vente-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('vente-message').style.color = '#e63946';
+    return;
+  }
+  var quantite = parseFloat(document.getElementById('vente-quantite').value);
+  if (!quantite || quantite <= 0) {
+    document.getElementById('vente-message').innerHTML = '⚠️ Entrez une quantité valide.';
+    document.getElementById('vente-message').style.color = '#e63946';
+    return;
+  }
+  if (quantite > produitSelectionne.quantite) {
+    document.getElementById('vente-message').innerHTML = '⚠️ Stock insuffisant !';
+    document.getElementById('vente-message').style.color = '#e63946';
+    return;
+  }
+  var date = new Date().toISOString().split('T')[0];
+  var vente = {
+    produit: produitSelectionne.nom,
+    prix: produitSelectionne.prix,
+    quantite: quantite,
+    unite: produitSelectionne.unite,
+    total: produitSelectionne.prix * quantite,
+    date: date
+  };
+  var trans = maBase.transaction(['produits', 'ventes'], 'readwrite');
+  var storeVentes = trans.objectStore('ventes');
+  var storeProduits = trans.objectStore('produits');
+  storeVentes.add(vente);
+  produitSelectionne.quantite -= quantite;
+  storeProduits.put(produitSelectionne);
+  derniereVente = vente;
+  trans.oncomplete = function() {
+    document.getElementById('vente-message').innerHTML = '✅ Vente enregistrée !';
+    document.getElementById('vente-message').style.color = '#2dc653';
+    document.getElementById('vente-produit').value = '';
+    document.getElementById('vente-prix').value = '';
+    document.getElementById('vente-quantite').value = '';
+    document.getElementById('vente-total').textContent = '0 FCFA';
+    document.getElementById('btn-recu').style.display='block';
+    produitSelectionne = null;
+  };
+}
+var derniereVente = null;
+
+function genererRecu() {
+  if (!derniereVente) return;
+  
+  var contenu = '<html><head><title>Recu</title>' +
+    '<style>' +
+    'body { font-family: Arial; padding: 20px; max-width: 400px; margin: 0 auto; }' +
+    'h1 { text-align: center; font-size: 1.3rem; }' +
+    'p { text-align: center; font-size: 0.85rem; color: #555; }' +
+    'hr { margin: 15px 0; }' +
+    'table { width: 100%; border-collapse: collapse; }' +
+    'th { background: #f0f0f0; padding: 8px; text-align: left; font-size: 0.85rem; }' +
+    'td { padding: 8px; font-size: 0.85rem; border-bottom: 1px solid #eee; }' +
+    '.total { font-weight: bold; font-size: 1.1rem; text-align: right; margin-top: 10px; }' +
+    '.footer { text-align: center; font-size: 0.75rem; color: #888; margin-top: 20px; }' +
+    '</style></head><body>' +
+    '<h1>ICSoft Boutique</h1>' +
+    '<p>Systeme de gestion commerciale</p>' +
+    '<p>Tel: +226 54 97 48 18</p>' +
+    '<hr>' +
+    '<h2 style="text-align:center; font-size:1rem;">RECU DE VENTE</h2>' +
+    '<p>Date : ' + derniereVente.date + '</p>' +
+    '<hr>' +
+    '<table>' +
+    '<tr><th>Produit</th><th>Qte</th><th>Prix</th><th>Total</th></tr>' +
+    '<tr><td>' + derniereVente.produit + '</td>' +
+    '<td>' + derniereVente.quantite + '</td>' +
+    '<td>' + derniereVente.prix + ' FCFA</td>' +
+    '<td>' + derniereVente.total + ' FCFA</td></tr>' +
+    '</table>' +
+    '<div class="total">TOTAL : ' + derniereVente.total + ' FCFA</div>' +
+    '<hr>' +
+    '<div class="footer">Merci pour votre achat !<br>Developpe par Ivan Charly - Burkina Faso 2026</div>' +
+    '</body></html>';
+
+  var fenetre = window.open('', '_blank');
+  fenetre.document.write(contenu);
+  fenetre.document.close();
+  fenetre.print();
+}
+
+function afficherHistorique() {
+  var liste = document.getElementById('liste-historique');
+  liste.innerHTML = '';
+  var trans = maBase.transaction(['ventes'], 'readonly');
+  var store = trans.objectStore('ventes');
+  var curseur = store.openCursor(null, 'prev');
+  var count = 0;
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      count++;
+      var v = cursor.value;
+      var carte = document.createElement('div');
+      carte.className = 'produit-carte';
+      carte.innerHTML =
+        '<div class="produit-nom">' + v.produit + '</div>' +
+        '<div class="produit-info"><span>Date</span><span>' + v.date + '</span></div>' +
+        '<div class="produit-info"><span>Quantité</span><span>' + v.quantite + ' ' + v.unite + '</span></div>' +
+        '<div class="produit-info"><span>Prix unitaire</span><span>' + v.prix + ' FCFA</span></div>' +
+        '<div class="produit-info"><span>Total</span><span>' + v.total + ' FCFA</span></div>';
+      liste.appendChild(carte);
+      cursor.continue();
+    } else {
+      if (count === 0) liste.innerHTML = '<p class="vide-msg">Aucune vente enregistrée.</p>';
+    }
+  };
+}
+
+function rechercherDispo(valeur) {
+  var suggestions = document.getElementById('dispo-suggestions');
+  var resultat = document.getElementById('dispo-resultat');
+  suggestions.innerHTML = '';
+  resultat.innerHTML = '';
+  if (valeur.trim() === '') return;
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var nom = cursor.value.nom.toLowerCase();
+      if (nom.indexOf(valeur.toLowerCase()) !== -1) {
+        (function(produit) {
+          var item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.textContent = produit.nom;
+          item.onclick = function() {
+            suggestions.innerHTML = '';
+            document.getElementById('dispo-recherche').value = produit.nom;
+            resultat.innerHTML =
+              '<div class="produit-carte">' +
+              '<div class="produit-nom">' + produit.nom + '</div>' +
+              '<div class="produit-info"><span>Prix unitaire</span><span>' + produit.prix + ' FCFA</span></div>' +
+              '<div class="produit-info"><span>Quantité disponible</span><span>' + produit.quantite + ' ' + produit.unite + '</span></div>' +
+              '<div class="produit-info"><span>Péremption</span><span>' + (produit.peremption || 'Non définie') + '</span></div>' +
+              '</div>';
+          };
+          suggestions.appendChild(item);
+        })(cursor.value);
+      }
+      cursor.continue();
+    }
+  };
+}
+
+var gainMode = 'jour';
+
+function setGainMode(mode, btn) {
+  gainMode = mode;
+  document.querySelectorAll('#page-gain .btn-option').forEach(function(b) { b.classList.remove('actif'); });
+  btn.classList.add('actif');
+  if (mode === 'custom') {
+    document.getElementById('gain-date-champ').style.display = 'block';
+  } else {
+    document.getElementById('gain-date-champ').style.display = 'none';
+    calculerGain();
+  }
+}
+
+function calculerGain() {
+  var aujourd = new Date();
+  var dateStr = aujourd.toISOString().split('T')[0];
+  var mois = dateStr.substring(0, 7);
+  var annee = dateStr.substring(0, 4);
+  if (gainMode === 'custom') {
+    var dateChoisie = document.getElementById('gain-date').value;
+    if (!dateChoisie) return;
+    dateStr = dateChoisie;
+  }
+  var trans = maBase.transaction(['ventes', 'depenses'], 'readonly');
+  var storeVentes = trans.objectStore('ventes');
+  var storeDepenses = trans.objectStore('depenses');
+  var totalVentes = 0;
+  var totalDepenses = 0;
+  var curseurVentes = storeVentes.openCursor();
+  curseurVentes.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var v = cursor.value;
+      var inclure = false;
+      if (gainMode === 'jour' && v.date === dateStr) inclure = true;
+      if (gainMode === 'mois' && v.date.substring(0, 7) === mois) inclure = true;
+      if (gainMode === 'annee' && v.date.substring(0, 4) === annee) inclure = true;
+      if (gainMode === 'custom' && v.date === dateStr) inclure = true;
+      if (inclure) totalVentes += v.total;
+      cursor.continue();
+    } else {
+      var curseurDep = storeDepenses.openCursor();
+      curseurDep.onsuccess = function(e2) {
+        var cursor2 = e2.target.result;
+        if (cursor2) {
+          var d = cursor2.value;
+          var inclure2 = false;
+          if (gainMode === 'jour' && d.date === dateStr) inclure2 = true;
+          if (gainMode === 'mois' && d.date.substring(0, 7) === mois) inclure2 = true;
+          if (gainMode === 'annee' && d.date.substring(0, 4) === annee) inclure2 = true;
+          if (gainMode === 'custom' && d.date === dateStr) inclure2 = true;
+          if (inclure2) totalDepenses += d.montant;
+          cursor2.continue();
+        } else {
+          var gain = totalVentes - totalDepenses;
+          var labels = { jour: "Gain d'aujourd'hui", mois: 'Gain du mois', annee: "Gain de l'année", custom: 'Gain du ' + dateStr };
+          document.getElementById('gain-resultat').innerHTML =
+            '<div class="gain-montant">' + gain.toLocaleString() + ' FCFA</div>' +
+            '<div class="gain-label">' + labels[gainMode] + '</div>';
+        }
+      };
+    }
+  };
+}
+
+var caMode = 'jour';
+
+function setCAMode(mode, btn) {
+  caMode = mode;
+  document.querySelectorAll('#page-ca .btn-option').forEach(function(b) { b.classList.remove('actif'); });
+  btn.classList.add('actif');
+  afficherCA();
+}
+
+function afficherCA() {
+  var aujourd = new Date();
+  var dateStr = aujourd.toISOString().split('T')[0];
+  var mois = dateStr.substring(0, 7);
+  var annee = dateStr.substring(0, 4);
+  var totalVentes = 0;
+  var totalDepenses = 0;
+  var trans = maBase.transaction(['ventes', 'depenses'], 'readonly');
+  var storeVentes = trans.objectStore('ventes');
+  var storeDepenses = trans.objectStore('depenses');
+  var curseurVentes = storeVentes.openCursor();
+  curseurVentes.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var v = cursor.value;
+      var inclure = false;
+      if (caMode === 'jour' && v.date === dateStr) inclure = true;
+      if (caMode === 'mois' && v.date.substring(0, 7) === mois) inclure = true;
+      if (caMode === 'annee' && v.date.substring(0, 4) === annee) inclure = true;
+      if (inclure) totalVentes += v.total;
+      cursor.continue();
+    } else {
+      var curseurDep = storeDepenses.openCursor();
+      curseurDep.onsuccess = function(e2) {
+        var cursor2 = e2.target.result;
+        if (cursor2) {
+          var d = cursor2.value;
+          var inclure2 = false;
+          if (caMode === 'jour' && d.date === dateStr) inclure2 = true;
+          if (caMode === 'mois' && d.date.substring(0, 7) === mois) inclure2 = true;
+          if (caMode === 'annee' && d.date.substring(0, 4) === annee) inclure2 = true;
+          if (inclure2) totalDepenses += d.montant;
+          cursor2.continue();
+        } else {
+          document.getElementById('ca-ventes').textContent = totalVentes.toLocaleString() + ' FCFA';
+          document.getElementById('ca-depenses-total').textContent = totalDepenses.toLocaleString() + ' FCFA';
+          document.getElementById('ca-gain').textContent = (totalVentes - totalDepenses).toLocaleString() + ' FCFA';
+          afficherGraphique();
+        }
+      };
+    }
+  };
+}
+
+function afficherGraphique() {
+  var jours = [];
+  var valeurs = [];
+  var aujourd = new Date();
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date(aujourd);
+    d.setDate(d.getDate() - i);
+    var str = d.toISOString().split('T')[0];
+    jours.push(str.substring(5));
+    valeurs.push(0);
+  }
+  var trans = maBase.transaction(['ventes'], 'readonly');
+  var store = trans.objectStore('ventes');
+  var curseur = store.openCursor();
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var v = cursor.value;
+      var idx = jours.indexOf(v.date.substring(5));
+      if (idx !== -1) valeurs[idx] += v.total;
+      cursor.continue();
+    } else {
+      var max = Math.max.apply(null, valeurs) || 1;
+      var html = '<div class="graphique-barres">';
+      for (var i = 0; i < jours.length; i++) {
+        var hauteur = Math.round((valeurs[i] / max) * 100);
+        html += '<div class="barre-groupe">' +
+          '<div class="barre-valeur">' + (valeurs[i] > 0 ? valeurs[i].toLocaleString() : '') + '</div>' +
+          '<div class="barre" style="height:' + hauteur + '%"></div>' +
+          '<div class="barre-label">' + jours[i] + '</div>' +
+          '</div>';
+      }
+      html += '</div>';
+      document.getElementById('ca-graphique').innerHTML = html;
+    }
+  };
+}
+
+function ajouterDepense() {
+  var description = document.getElementById('dep-description').value.trim();
+  var montant = parseFloat(document.getElementById('dep-montant').value);
+  if (!description || !montant || montant <= 0) {
+    document.getElementById('dep-message').innerHTML = '⚠️ Remplis tous les champs.';
+    document.getElementById('dep-message').style.color = '#e63946';
+    return;
+  }
+  var date = new Date().toISOString().split('T')[0];
+  var depense = { description: description, montant: montant, date: date };
+  var trans = maBase.transaction(['depenses'], 'readwrite');
+  var store = trans.objectStore('depenses');
+  var ajout = store.add(depense);
+  ajout.onsuccess = function() {
+    document.getElementById('dep-message').innerHTML = '✅ Dépense enregistrée !';
+    document.getElementById('dep-message').style.color = '#2dc653';
+    document.getElementById('dep-description').value = '';
+    document.getElementById('dep-montant').value = '';
+    afficherCA();
+  };
+}
+
+var infosMode = 'jour';
+
+function setInfosMode(mode, btn) {
+  infosMode = mode;
+  document.querySelectorAll('#page-infos .btn-option').forEach(function(b) { b.classList.remove('actif'); });
+  btn.classList.add('actif');
+  var label = document.getElementById('infos-date-label');
+  var input = document.getElementById('infos-date');
+  if (mode === 'jour') { label.textContent = 'Choisir une date'; input.type = 'date'; }
+  else if (mode === 'mois') { label.textContent = 'Choisir un mois'; input.type = 'month'; }
+  else { label.textContent = 'Choisir une année'; input.type = 'number'; input.placeholder = '2026'; }
+  document.getElementById('infos-resultat').innerHTML = '';
+  document.getElementById('btn-imprimer').style.display = 'none';
+}
+
+function afficherInfosVentes() {
+  var valeur = document.getElementById('infos-date').value;
+  if (!valeur) return;
+  var trans = maBase.transaction(['ventes'], 'readonly');
+  var store = trans.objectStore('ventes');
+  var curseur = store.openCursor();
+  var ventes = [];
+  var total = 0;
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var v = cursor.value;
+      var inclure = false;
+      if (infosMode === 'jour' && v.date === valeur) inclure = true;
+      if (infosMode === 'mois' && v.date.substring(0, 7) === valeur) inclure = true;
+      if (infosMode === 'annee' && v.date.substring(0, 4) === valeur) inclure = true;
+      if (inclure) { ventes.push(v); total += v.total; }
+      cursor.continue();
+    } else {
+      var resultat = document.getElementById('infos-resultat');
+      if (ventes.length === 0) {
+        resultat.innerHTML = '<p class="vide-msg">Aucune vente pour cette période.</p>';
+        document.getElementById('btn-imprimer').style.display = 'none';
+        return;
+      }
+      var html = '<table class="bilan-table"><thead><tr><th>Produit</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead><tbody>';
+      for (var i = 0; i < ventes.length; i++) {
+        var v = ventes[i];
+        html += '<tr><td>' + v.produit + '</td><td>' + v.quantite + ' ' + v.unite + '</td><td>' + v.prix + ' FCFA</td><td>' + v.total + ' FCFA</td></tr>';
+      }
+      html += '</tbody></table><div class="bilan-total">Total : ' + total.toLocaleString() + ' FCFA</div>';
+      resultat.innerHTML = html;
+      document.getElementById('btn-imprimer').style.display = 'block';
+    }
+  };
+}
+
+function imprimerBilan() {
+  window.print();
+}
+
+var topMode = 'jour';
+
+function setTopMode(mode, btn) {
+  topMode = mode;
+  document.querySelectorAll('#page-top .btn-option').forEach(function(b) { b.classList.remove('actif'); });
+  btn.classList.add('actif');
+  var label = document.getElementById('top-date-label');
+  var input = document.getElementById('top-date');
+  if (mode === 'jour') {
+    label.textContent = 'Choisir une date';
+    input.type = 'date';
+  } else {
+    label.textContent = 'Choisir un mois';
+    input.type = 'month';
+  }
+  document.getElementById('top-resultat').innerHTML = '';
+}
+
+function afficherTopProduit() {
+  var valeur = document.getElementById('top-date').value;
+  if (!valeur) return;
+
+  var trans = maBase.transaction(['ventes'], 'readonly');
+  var store = trans.objectStore('ventes');
+  var curseur = store.openCursor();
+
+  var produits = {};
+
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var v = cursor.value;
+      var inclure = false;
+      if (topMode === 'jour' && v.date === valeur) inclure = true;
+      if (topMode === 'mois' && v.date.substring(0, 7) === valeur) inclure = true;
+
+      if (inclure) {
+        if (produits[v.produit]) {
+          produits[v.produit].quantite += v.quantite;
+          produits[v.produit].total += v.total;
+        } else {
+          produits[v.produit] = { quantite: v.quantite, total: v.total };
+        }
+      }
+      cursor.continue();
+    } else {
+      var resultat = document.getElementById('top-resultat');
+      var noms = Object.keys(produits);
+
+      if (noms.length === 0) {
+        resultat.innerHTML = '<p class="vide-msg">Aucune vente pour cette période.</p>';
+        return;
+      }
+
+      var top = noms.reduce(function(a, b) {
+        return produits[a].quantite > produits[b].quantite ? a : b;
+      });
+
+      resultat.innerHTML =
+        '<div class="produit-carte">' +
+        '<div class="produit-nom">🏆 ' + top + '</div>' +
+        '<div class="produit-info"><span>Quantité vendue</span><span>' + produits[top].quantite + '</span></div>' +
+        '<div class="produit-info"><span>Total généré</span><span>' + produits[top].total + ' FCFA</span></div>' +
+        '</div>';
+    }
+  };
+}
+
+var produitParamPrix = null;
+var produitParamPer = null;
+
+function rechercherParamPrix(valeur) {
+  var suggestions = document.getElementById('param-prix-suggestions');
+  suggestions.innerHTML = '';
+  produitParamPrix = null;
+  if (valeur.trim() === '') return;
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var nom = cursor.value.nom.toLowerCase();
+      if (nom.indexOf(valeur.toLowerCase()) !== -1) {
+        (function(produit) {
+          var item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.textContent = produit.nom + ' — ' + produit.prix + ' FCFA';
+          item.onclick = function() {
+            produitParamPrix = produit;
+            document.getElementById('param-prix-nom').value = produit.nom;
+            document.getElementById('param-prix-valeur').value = produit.prix;
+            suggestions.innerHTML = '';
+          };
+          suggestions.appendChild(item);
+        })(cursor.value);
+      }
+      cursor.continue();
+    }
+  };
+}
+
+function modifierPrix() {
+  if (!produitParamPrix) {
+    document.getElementById('param-prix-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('param-prix-message').style.color = '#e63946';
+    return;
+  }
+  var nouveauPrix = parseFloat(document.getElementById('param-prix-valeur').value);
+  if (!nouveauPrix || nouveauPrix <= 0) {
+    document.getElementById('param-prix-message').innerHTML = '⚠️ Entre un prix valide.';
+    document.getElementById('param-prix-message').style.color = '#e63946';
+    return;
+  }
+  produitParamPrix.prix = nouveauPrix;
+  var trans = maBase.transaction(['produits'], 'readwrite');
+  var store = trans.objectStore('produits');
+  store.put(produitParamPrix);
+  trans.oncomplete = function() {
+    document.getElementById('param-prix-message').innerHTML = '✅ Prix modifié avec succès !';
+    document.getElementById('param-prix-message').style.color = '#2dc653';
+    document.getElementById('param-prix-nom').value = '';
+    document.getElementById('param-prix-valeur').value = '';
+    produitParamPrix = null;
+  };
+}
+
+function rechercherParamPer(valeur) {
+  var suggestions = document.getElementById('param-per-suggestions');
+  suggestions.innerHTML = '';
+  produitParamPer = null;
+  if (valeur.trim() === '') return;
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var nom = cursor.value.nom.toLowerCase();
+      if (nom.indexOf(valeur.toLowerCase()) !== -1) {
+        (function(produit) {
+          var item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.textContent = produit.nom + ' — ' + (produit.peremption || 'Non définie');
+          item.onclick = function() {
+            produitParamPer = produit;
+            document.getElementById('param-per-nom').value = produit.nom;
+            document.getElementById('param-per-date').value = produit.peremption || '';
+            suggestions.innerHTML = '';
+          };
+          suggestions.appendChild(item);
+        })(cursor.value);
+      }
+      cursor.continue();
+    }
+  };
+}
+
+function modifierPeremption() {
+  if (!produitParamPer) {
+    document.getElementById('param-per-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('param-per-message').style.color = '#e63946';
+    return;
+  }
+  var nouvelleDate = document.getElementById('param-per-date').value;
+  if (!nouvelleDate) {
+    document.getElementById('param-per-message').innerHTML = '⚠️ Entre une date valide.';
+    document.getElementById('param-per-message').style.color = '#e63946';
+    return;
+  }
+  produitParamPer.peremption = nouvelleDate;
+  var trans = maBase.transaction(['produits'], 'readwrite');
+  var store = trans.objectStore('produits');
+  store.put(produitParamPer);
+  trans.oncomplete = function() {
+    document.getElementById('param-per-message').innerHTML = '✅ Péremption modifiée !';
+    document.getElementById('param-per-message').style.color = '#2dc653';
+    document.getElementById('param-per-nom').value = '';
+    document.getElementById('param-per-date').value = '';
+    produitParamPer = null;
+  };
+}
+
+function reinitialiser() {
+  if (!confirm('⚠️ Attention ! Toutes les données seront effacées. Continuer ?')) return;
+  var trans = maBase.transaction(['produits', 'ventes', 'depenses'], 'readwrite');
+  trans.objectStore('produits').clear();
+  trans.objectStore('ventes').clear();
+  trans.objectStore('depenses').clear();
+  trans.oncomplete = function() {
+    document.getElementById('param-reinit-message').innerHTML = '✅ Toutes les données ont été effacées.';
+    document.getElementById('param-reinit-message').style.color = '#2dc653';
+  };
+}
+
+function verifierPeremption() {
+  var aujourd = new Date();
+  var dans7jours = new Date();
+  dans7jours.setDate(aujourd.getDate() + 7);
+
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+
+  var produitsAlert = [];
+
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var p = cursor.value;
+      if (p.peremption) {
+        var datePeremption = new Date(p.peremption);
+        if (datePeremption <= dans7jours && datePeremption >= aujourd) {
+          produitsAlert.push(p.nom + ' (expire le ' + p.peremption + ')');
+        }
+      }
+      cursor.continue();
+    } else {
+      if (produitsAlert.length > 0) {
+        document.getElementById('alerte-texte').textContent = 
+          '⚠️ Produits qui expirent bientôt : ' + produitsAlert.join(' | ');
+        document.getElementById('alerte-peremption').style.display = 'block';
+      }
+    }
+  };
+}
+
+function exporterDonnees() {
+  var donnees = { produits: [], ventes: [], depenses: [] };
+
+  var trans = maBase.transaction(['produits', 'ventes', 'depenses'], 'readonly');
+
+  var curseurProduits = trans.objectStore('produits').openCursor();
+  curseurProduits.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      donnees.produits.push(cursor.value);
+      cursor.continue();
+    }
+  };
+
+  var curseurVentes = trans.objectStore('ventes').openCursor();
+  curseurVentes.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      donnees.ventes.push(cursor.value);
+      cursor.continue();
+    }
+  };
+
+  var curseurDepenses = trans.objectStore('depenses').openCursor();
+  curseurDepenses.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      donnees.depenses.push(cursor.value);
+      cursor.continue();
+    }
+  };
+
+  trans.oncomplete = function() {
+    var json = JSON.stringify(donnees);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var date = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = 'icsoft-sauvegarde-' + date + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('export-message').innerHTML = '✅ Sauvegarde téléchargée !';
+    document.getElementById('export-message').style.color = '#2dc653';
+  };
+}
+
+function importerDonnees() {
+  var fichier = document.getElementById('fichier-import').files[0];
+  if (!fichier) {
+    document.getElementById('import-message').innerHTML = '⚠️ Choisis un fichier.';
+    document.getElementById('import-message').style.color = '#e63946';
+    return;
+  }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var donnees = JSON.parse(e.target.result);
+      var trans = maBase.transaction(['produits', 'ventes', 'depenses'], 'readwrite');
+      var storeProduits = trans.objectStore('produits');
+      var storeVentes = trans.objectStore('ventes');
+      var storeDepenses = trans.objectStore('depenses');
+
+      storeProduits.clear();
+      storeVentes.clear();
+      storeDepenses.clear();
+
+      donnees.produits.forEach(function(p) { storeProduits.add(p); });
+      donnees.ventes.forEach(function(v) {
+        delete v.id;
+        storeVentes.add(v);
+      });
+      donnees.depenses.forEach(function(d) {
+        delete d.id;
+        storeDepenses.add(d);
+      });
+
+      trans.oncomplete = function() {
+        document.getElementById('import-message').innerHTML = '✅ Données restaurées avec succès !';
+        document.getElementById('import-message').style.color = '#2dc653';
+      };
+    } catch(err) {
+      document.getElementById('import-message').innerHTML = '⚠️ Fichier invalide.';
+      document.getElementById('import-message').style.color = '#e63946';
+    }
+  };
+  reader.readAsText(fichier);
+}
+
+
+
+  </script>
+
+</body>
+</html>
