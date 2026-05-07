@@ -12,6 +12,19 @@
   
 </head>
 <body>
+  <div id="page-licence" style="display:none">
+  <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; background:#0a1628;">
+    <div style="font-size:3rem; margin-bottom:20px;">🏪</div>
+    <h1 style="font-family:'Syne',sans-serif; color:#f0a500; font-size:1.5rem; margin-bottom:10px; text-align:center;">ICSoft Boutique</h1>
+    <p style="color:#c8d0e0; font-size:0.85rem; text-align:center; margin-bottom:30px;">Entrez votre clé de licence pour activer l'application</p>
+    <input type="text" id="input-licence" placeholder="Ex: ICSOFT-XXXX-2026" style="background:#1a2f55; border:1px solid #f0a500; border-radius:10px; color:white; padding:14px; width:100%; max-width:400px; font-size:1rem; text-align:center; outline:none; margin-bottom:16px;" />
+    <button onclick="activerLicence()" style="background:linear-gradient(135deg,#f0a500,#c46200); border:none; border-radius:14px; color:#0a1628; padding:16px 40px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:800; cursor:pointer; width:100%; max-width:400px;">
+      Activer
+    </button>
+    <div id="licence-message" style="margin-top:14px; font-size:0.9rem;"></div>
+    <p style="color:#7a8599; font-size:0.78rem; margin-top:30px; text-align:center;">Pour obtenir votre clé, contactez le développeur<br>+226 54 97 48 18</p>
+  </div>
+</div>
   <div id="alerte-peremption" style="display:none">
   <div class="alerte-contenu">
     <span></span>
@@ -370,6 +383,21 @@
     <button class="btn-valider" onclick="modifierPeremption()">Enregistrer la péremption</button>
     <div id="param-per-message"></div>
 
+    <div class="separateur">Ajouter quantité à un produit</div>
+<div class="champ">
+  <label>Rechercher le produit</label>
+  <input type="text" id="param-qty-nom" placeholder="Tapez le nom..." oninput="rechercherParamQty(this.value)" autocomplete="off" />
+  <div id="param-qty-suggestions" class="suggestions"></div>
+</div>
+<div class="champ">
+  <label>Quantité à ajouter</label>
+  <input type="number" id="param-qty-valeur" placeholder="0" />
+</div>
+<button class="btn-valider" style="background: linear-gradient(135deg, #2dc653, #1a9e3f);" onclick="ajouterQuantite()">
+   Ajouter la quantité
+</button>
+<div id="param-qty-message"></div>
+
     <div class="separateur">Réinitialisation</div>
     <button class="btn-valider" style="background: linear-gradient(135deg, #e63946, #b5272f);" onclick="reinitialiser()">
       🗑️ Effacer toutes les données
@@ -463,6 +491,7 @@ ouverture.onupgradeneeded = function(e) {
 
 ouverture.onsuccess = function(e) {
   maBase = e.target.result;
+  verifierLicence();
   verifierPeremption();
 };
 
@@ -1159,6 +1188,86 @@ function reinitialiser() {
     document.getElementById('param-reinit-message').innerHTML = '✅ Toutes les données ont été effacées.';
     document.getElementById('param-reinit-message').style.color = '#2dc653';
   };
+}
+
+var produitParamQty = null;
+
+function rechercherParamQty(valeur) {
+  var suggestions = document.getElementById('param-qty-suggestions');
+  suggestions.innerHTML = '';
+  produitParamQty = null;
+  if (valeur.trim() === '') return;
+  var trans = maBase.transaction(['produits'], 'readonly');
+  var store = trans.objectStore('produits');
+  var curseur = store.openCursor();
+  curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      var nom = cursor.value.nom.toLowerCase();
+      if (nom.indexOf(valeur.toLowerCase()) !== -1) {
+        (function(produit) {
+          var item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.textContent = produit.nom + ' — Stock actuel : ' + produit.quantite + ' ' + produit.unite;
+          item.onclick = function() {
+            produitParamQty = produit;
+            document.getElementById('param-qty-nom').value = produit.nom;
+            suggestions.innerHTML = '';
+          };
+          suggestions.appendChild(item);
+        })(cursor.value);
+      }
+      cursor.continue();
+    }
+  };
+}
+
+function ajouterQuantite() {
+  if (!produitParamQty) {
+    document.getElementById('param-qty-message').innerHTML = '⚠️ Sélectionne un produit.';
+    document.getElementById('param-qty-message').style.color = '#e63946';
+    return;
+  }
+  var quantite = parseFloat(document.getElementById('param-qty-valeur').value);
+  if (!quantite || quantite <= 0) {
+    document.getElementById('param-qty-message').innerHTML = '⚠️ Entre une quantité valide.';
+    document.getElementById('param-qty-message').style.color = '#e63946';
+    return;
+  }
+  produitParamQty.quantite += quantite;
+  var trans = maBase.transaction(['produits'], 'readwrite');
+  var store = trans.objectStore('produits');
+  store.put(produitParamQty);
+  trans.oncomplete = function() {
+    document.getElementById('param-qty-message').innerHTML = '✅ Quantité ajoutée ! Nouveau stock : ' + produitParamQty.quantite + ' ' + produitParamQty.unite;
+    document.getElementById('param-qty-message').style.color = '#2dc653';
+    document.getElementById('param-qty-nom').value = '';
+    document.getElementById('param-qty-valeur').value = '';
+    produitParamQty = null;
+  };
+}
+
+function verifierLicence() {
+  var cle = localStorage.getItem('icsoft_licence');
+  if (!cle || !cle.startsWith('ICSOFT-')) {
+    document.getElementById('page-licence').style.display = 'block';
+    document.getElementById('page-accueil').style.display = 'none';
+  }
+}
+
+function activerLicence() {
+  var saisie = document.getElementById('input-licence').value.trim().toUpperCase();
+  
+  if (!saisie.startsWith('ICSOFT-') || saisie.length < 10) {
+    document.getElementById('licence-message').innerHTML = '⚠️ Clé invalide !';
+    document.getElementById('licence-message').style.color = '#e63946';
+    return;
+  }
+  
+  localStorage.setItem('icsoft_licence', saisie);
+  document.getElementById('page-licence').style.display = 'none';
+  document.getElementById('page-accueil').style.display = 'block';
+  document.getElementById('licence-message').innerHTML = '';
 }
 
 function verifierPeremption() {
