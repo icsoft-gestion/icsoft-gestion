@@ -17,7 +17,7 @@
     <div style="font-size:3rem; margin-bottom:20px;">🏪</div>
     <h1 style="font-family:'Syne',sans-serif; color:#f0a500; font-size:1.5rem; margin-bottom:10px; text-align:center;">ICSoft Boutique</h1>
     <p style="color:#c8d0e0; font-size:0.85rem; text-align:center; margin-bottom:30px;">Entrez votre clé de licence pour activer l'application</p>
-    <input type="text" id="input-licence" placeholder="Ex: ICSOFT-XXXX-2026" style="background:#1a2f55; border:1px solid #f0a500; border-radius:10px; color:white; padding:14px; width:100%; max-width:400px; font-size:1rem; text-align:center; outline:none; margin-bottom:16px;" />
+    <input type="text" id="input-licence" placeholder="" />
     <button onclick="activerLicence()" style="background:linear-gradient(135deg,#f0a500,#c46200); border:none; border-radius:14px; color:#0a1628; padding:16px 40px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:800; cursor:pointer; width:100%; max-width:400px;">
       Activer
     </button>
@@ -491,7 +491,33 @@ ouverture.onupgradeneeded = function(e) {
 
 ouverture.onsuccess = function(e) {
   maBase = e.target.result;
-  verifierLicence();
+  function verifierLicence() {
+  var cle = localStorage.getItem('icsoft_licence');
+  
+  if (cle && cle.startsWith('ICSOFT-BF9K-')) {
+    return;
+  }
+  
+  var debut = localStorage.getItem('icsoft_essai_debut');
+  if (!debut) {
+    debut = new Date().getTime();
+    localStorage.setItem('icsoft_essai_debut', debut);
+  }
+  
+  var maintenant = new Date().getTime();
+  var joursEcoules = Math.floor((maintenant - debut) / (1000 * 60 * 60 * 24));
+  var joursRestants = 7 - joursEcoules;
+  
+  if (joursEcoules >= 7) {
+    document.getElementById('page-licence').style.display = 'block';
+    document.getElementById('page-accueil').style.display = 'none';
+  } else {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed; bottom:10px; right:10px; background:#f0a500; color:#0a1628; padding:8px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; z-index:999;';
+    msg.textContent = '⏳ Essai : ' + joursRestants + ' jour(s) restant(s)';
+    document.body.appendChild(msg);
+  }
+}
   verifierPeremption();
 };
 
