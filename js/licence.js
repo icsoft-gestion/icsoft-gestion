@@ -3,7 +3,7 @@ const CLE_MAITRE = "ICSOFT-IVAN-2026";
 
 function verifierLicence() {
     // Attendre que IndexedDB soit ouvert
-    const request = indexedDB.open("icsoft_db");
+    const request = indexedDB.open("ICSoftBoutique");
     request.onsuccess = function() {
         _verifierLicence();
     };
