@@ -1,152 +1,67 @@
 
+const CLE_MAITRE = "ICSOFT-IVAN-2026";
 
-const DB_NAME = "icsoft_db";
-const DB_VERSION = 1;
-const STORE_NAME = "licence";
-const ESSAI_JOURS = 7;
-
-// Ouvre la base IndexedDB
-function ouvrirDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = e => {
-      e.target.result.createObjectStore(STORE_NAME, { keyPath: "cle" });
+function verifierLicence() {
+    // Attendre que IndexedDB soit ouvert
+    const request = indexedDB.open("icsoft_db");
+    request.onsuccess = function() {
+        _verifierLicence();
     };
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror = () => reject("Erreur DB");
-  });
+    request.onerror = function() {
+        _verifierLicence(); // continuer même si erreur
+    };
 }
 
-// Lire une valeur
-function lire(db, cle) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const req = tx.objectStore(STORE_NAME).get(cle);
-    req.onsuccess = () => resolve(req.result ? req.result.valeur : null);
-    req.onerror = () => resolve(null);
-  });
-}
 
-// Écrire une valeur
-function ecrire(db, cle, valeur) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).put({ cle, valeur });
-    tx.oncomplete = () => resolve();
-  });
-}
 
-// Vérification principale au chargement
-async function verifierLicence() {
-  const db = await ouvrirDB();
-  const maintenant = Date.now();
+function verifierLicence() {
+    const cle = localStorage.getItem("icsoft_licence");
 
-  // Vérifier si une licence active existe
-  const licenceData = await lire(db, "licence_active");
-  if (licenceData) {
-    const licence = JSON.parse(licenceData);
-    if (maintenant < licence.expiration) {
-      afficherApp(); // Licence valide
-      return;
+    // Licence déjà activée → accès direct
+    if (cle && cle === CLE_MAITRE) {
+        afficherApp();
+        return;
+    }
+
+    // Gestion essai 7 jours
+    let debut = localStorage.getItem("icsoft_essai_debut");
+    if (!debut) {
+        debut = new Date().getTime();
+        localStorage.setItem("icsoft_essai_debut", debut);
+    }
+
+    const maintenant = new Date().getTime();
+    const joursEcoules = Math.floor((maintenant - parseInt(debut)) / (1000 * 60 * 60 * 24));
+    const joursRestants = 7 - joursEcoules;
+
+    if (joursEcoules >= 7) {
+        // Essai terminé → bloquer
+        document.getElementById("page-licence").style.display = "block";
+        document.getElementById("page-accueil").style.display = "none";
     } else {
-      // Licence expirée
-      await ecrire(db, "licence_active", null);
+        // Encore en essai → laisser entrer + afficher message
+        afficherApp();
+        const msg = document.createElement("div");
+        msg.style.cssText = "position:fixed; bottom:10px; right:10px; background:#f0a500; color:#0a1628; padding:8px 14px; border-radius:8px; font-weight:bold; z-index:9999;";
+        msg.textContent = "⏳ Essai : " + joursRestants + " jour(s) restant(s)";
+        document.body.appendChild(msg);
     }
-  }
-
-  // Vérifier la période d'essai
-  let debutEssai = await lire(db, "debut_essai");
-  if (!debutEssai) {
-    // Premier lancement — démarrer l'essai
-    await ecrire(db, "debut_essai", maintenant.toString());
-    debutEssai = maintenant.toString();
-  }
-
-  const joursEcoules = (maintenant - parseInt(debutEssai)) / (1000 * 60 * 60 * 24);
-
-  if (joursEcoules < ESSAI_JOURS) {
-    afficherApp(); // Essai encore valide
-  } else {
-    afficherPageLicence(); // Essai terminé
-  }
 }
 
-// Activer une licence avec la clé saisie
-async function activerLicence() {
-  const saisie = document.getElementById("input-licence").value.trim();
-  const resultat = verifierCle(saisie);
-
-  if (!resultat.valide) {
-    document.getElementById("licence-message").textContent = "Clé invalide.";
-    return;
-  }
-
-  const db = await ouvrirDB();
-  const expiration = resultat.expiration;
-  await ecrire(db, "licence_active", JSON.stringify({ expiration }));
-
-  afficherApp();
-}
-
-// ============================================
-// FORMAT DE CLÉ — CONNU DE TOI SEUL
-// Structure : IC-XXXX-MMAA-YYYY
-// XXXX = code client (4 lettres hash)
-// MMAA = mois + année (ex: 0626 = juin 2026)
-// YYYY = checksum calculé
-// ============================================
-function verifierCle(saisie) {
-  try {
-    const parties = saisie.toUpperCase().split("-");
-    if (parties.length !== 4) return { valide: false };
-    if (parties[0] !== "IC") return { valide: false };
-
-    const mmaa = parties[2];
-    if (mmaa.length !== 4) return { valide: false };
-
-    const mois = parseInt(mmaa.substring(0, 2));
-    const annee = parseInt("20" + mmaa.substring(2, 4));
-    if (mois < 1 || mois > 12) return { valide: false };
-
-    // Vérifier le checksum
-    const codeClient = parties[1];
-    const checksumAttendu = calculerChecksum(codeClient, mmaa);
-    if (parties[3] !== checksumAttendu) return { valide: false };
-
-    // Calculer la date d'expiration (fin du mois)
-    const expiration = new Date(annee, mois, 1).getTime(); // 1er du mois suivant
-
-    // Vérifier que la clé est pour le mois en cours ou futur
-    const maintenant = new Date();
-    const debutMoisCle = new Date(annee, mois - 1, 1).getTime();
-    if (debutMoisCle < new Date(maintenant.getFullYear(), maintenant.getMonth(), 1).getTime()) {
-      return { valide: false }; // Clé d'un mois passé
+function activerLicence() {
+    const saisie = document.getElementById("input-licence").value.trim();
+    if (saisie === CLE_MAITRE) {
+        localStorage.setItem("icsoft_licence", saisie);
+        afficherApp();
+        alert("✅ Licence activée !");
+    } else {
+        alert("❌ Clé invalide !");
     }
-
-    return { valide: true, expiration };
-  } catch {
-    return { valide: false };
-  }
-}
-
-// Calcul du checksum (algorithme secret)
-function calculerChecksum(codeClient, mmaa) {
-  const base = codeClient + mmaa;
-  let val = 0;
-  for (let i = 0; i < base.length; i++) {
-    val = (val * 31 + base.charCodeAt(i)) % 9973;
-  }
-  return val.toString(36).toUpperCase().padStart(4, "0").substring(0, 4);
 }
 
 function afficherApp() {
-  document.getElementById("page-licence").style.display = "none";
-  document.getElementById("page-accueil").style.display = "block";
-}
-
-function afficherPageLicence() {
-  document.getElementById("page-licence").style.display = "flex";
-  document.getElementById("page-accueil").style.display = "none";
+    document.getElementById("page-licence").style.display = "none";
+    document.getElementById("page-accueil").style.display = "block";
 }
 
 window.onload = verifierLicence;

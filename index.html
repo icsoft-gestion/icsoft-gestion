@@ -33,7 +33,7 @@
   </div>
 </div>
 
-  <div id="page-accueil">
+  <div id="page-accueil" style="display:none">
     <header>
       <h1>🏪 ICSoft Boutique</h1>
       <p>Système de gestion commerciale</p>
@@ -324,7 +324,7 @@
         </div>
         <div class="champ">
           <label>Unité de mesure</label>
-          <select id="stock-unite">
+          <select id="stock-unite" onchange="gererAutreUnite(this)">
             <option value="pièce">Pièce</option>
             <option value="kg">Kilogramme (kg)</option>
             <option value="litre">Litre</option>
@@ -333,7 +333,10 @@
             <option value="carton">Carton</option>
             <option value="bouteille">Bouteille</option>
             <option value="sachet">Sachet</option>
+            <option value="autre">--Autre(taper)--</option>
           </select>
+          <input type="text" id="stock-unite-autre" placeholder="Tapez votre unité..." style="display:none; margin-top:8px; width:100%;padding:8px;border-radius:8px; border:none; background:#1e3a5f; color:white;" />
+          
         </div>
         <div class="champ">
           <label>Date de péremption</label>
@@ -472,12 +475,14 @@
   <script>
    
     var maBase;
-var ouverture = indexedDB.open('ICSoftBoutique', 4);
+var ouverture = indexedDB.open('ICSoftBoutique', 5);
 
 ouverture.onupgradeneeded = function(e) {
   maBase = e.target.result;
   if (!maBase.objectStoreNames.contains('produits')) {
-    maBase.createObjectStore('produits', { keyPath: 'nom' });
+    var produits = maBase.createObjectStore('produits', { autoIncrement: true });
+produits.createIndex('nom', 'nom', { unique: false });
+produits.createIndex('nom_unite', ['nom', 'unite'], { unique: true });
   }
   if (!maBase.objectStoreNames.contains('ventes')) {
     var ventes = maBase.createObjectStore('ventes', { autoIncrement: true });
@@ -491,35 +496,11 @@ ouverture.onupgradeneeded = function(e) {
 
 ouverture.onsuccess = function(e) {
   maBase = e.target.result;
-  function verifierLicence() {
-  var cle = localStorage.getItem('icsoft_licence');
-  
-  if (cle && cle.startsWith('ICSOFT-BF9K-')) {
-    return;
-  }
-  
-  var debut = localStorage.getItem('icsoft_essai_debut');
-  if (!debut) {
-    debut = new Date().getTime();
-    localStorage.setItem('icsoft_essai_debut', debut);
-  }
-  
-  var maintenant = new Date().getTime();
-  var joursEcoules = Math.floor((maintenant - debut) / (1000 * 60 * 60 * 24));
-  var joursRestants = 7 - joursEcoules;
-  
-  if (joursEcoules >= 7) {
-    document.getElementById('page-licence').style.display = 'block';
-    document.getElementById('page-accueil').style.display = 'none';
-  } else {
-    var msg = document.createElement('div');
-    msg.style.cssText = 'position:fixed; bottom:10px; right:10px; background:#f0a500; color:#0a1628; padding:8px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; z-index:999;';
-    msg.textContent = '⏳ Essai : ' + joursRestants + ' jour(s) restant(s)';
-    document.body.appendChild(msg);
-  }
-}
+  verifierLicence();
   verifierPeremption();
 };
+
+
 
 function allerVers(pageId) {
   var pages = document.querySelectorAll('div[id^="page-"]');
@@ -528,44 +509,82 @@ function allerVers(pageId) {
 }
 
 function ajouterProduit() {
-  var nom = document.getElementById('stock-nom').value.trim();
-  nom = nom.charAt(0).toUpperCase() + nom.slice(1).toLowerCase();
-  var prix = document.getElementById('stock-prix').value;
-  var quantite = document.getElementById('stock-quantite').value;
-  var unite = document.getElementById('stock-unite').value;
-  var peremption = document.getElementById('stock-peremption').value;
+    var nom = document.getElementById('stock-nom').value.trim();
+    nom = nom.charAt(0).toUpperCase() + nom.slice(1).toLowerCase();
+    var prix = document.getElementById('stock-prix').value;
+    var quantite = document.getElementById('stock-quantite').value;
+    var unite = document.getElementById('stock-unite').value;
+if (unite === 'autre') {
+    unite = document.getElementById('stock-unite-autre').value.trim();
+    if (unite === '') {
+        document.getElementById('stock-message').innerHTML = '❌ Tape ton unité personnalisée !';
+        document.getElementById('stock-message').style.color = '#e63946';
+        return;
+    }
+}
+    var peremption = document.getElementById('stock-peremption').value;
 
-  if (nom === '' || prix === '' || quantite === '') {
-    document.getElementById('stock-message').innerHTML = ' Remplis tous les champs obligatoires.';
-    document.getElementById('stock-message').style.color = '#e63946';
-    return;
-  }
+    // Vérification champs obligatoires
+    if (nom === '' || prix === '' || quantite === '' || unite === '') {
+        document.getElementById('stock-message').innerHTML = '❌ Remplis tous les champs obligatoires !';
+        document.getElementById('stock-message').style.color = '#e63946';
+        return;
+    }
 
-  var produit = {
-    nom: nom,
-    prix: parseFloat(prix),
-    quantite: parseFloat(quantite),
-    unite: unite,
-    peremption: peremption
-  };
+    var produit = {
+        nom: nom,
+        prix: parseFloat(prix),
+        quantite: parseFloat(quantite),
+        unite: unite,
+        peremption: peremption
+    };
 
-  var trans = maBase.transaction(['produits'], 'readwrite');
-  var store = trans.objectStore('produits');
-  var ajout = store.add(produit);
+    var trans = maBase.transaction(['produits'], 'readwrite');
+    var store = trans.objectStore('produits');
 
-  ajout.onsuccess = function() {
-    document.getElementById('stock-message').innerHTML = '✅ Produit ajouté avec succès !';
-    document.getElementById('stock-message').style.color = '#2dc653';
-    document.getElementById('stock-nom').value = '';
-    document.getElementById('stock-prix').value = '';
-    document.getElementById('stock-quantite').value = '';
-    document.getElementById('stock-peremption').value = '';
-  };
+    // Vérifier si nom + unite existe déjà
+    var verif = store.getAll();
+    verif.onsuccess = function() {
+        var existe = verif.result.find(function(p) {
+            return p.nom === produit.nom && p.unite === produit.unite;
+        });
 
-  ajout.onerror = function() {
-    document.getElementById('stock-message').innerHTML = ' Ce produit existe déjà !';
-    document.getElementById('stock-message').style.color = '#e63946';
-  };
+        if (existe) {
+            // Même nom + même unité → bloquer
+            document.getElementById('stock-message').innerHTML = '❌ Ce produit en ' + produit.unite + ' existe déjà !';
+            document.getElementById('stock-message').style.color = '#e63946';
+        } else {
+            // Nom + unité différente → nouveau produit
+            var trans2 = maBase.transaction(['produits'], 'readwrite');
+            var store2 = trans2.objectStore('produits');
+            var ajout = store2.add(produit);
+
+            ajout.onsuccess = function() {
+                document.getElementById('stock-message').innerHTML = '✅ Produit ajouté avec succès !';
+                document.getElementById('stock-message').style.color = '#2dc653';
+                document.getElementById('stock-nom').value = '';
+                document.getElementById('stock-prix').value = '';
+                document.getElementById('stock-quantite').value = '';
+                document.getElementById('stock-peremption').value = '';
+            };
+
+            ajout.onerror = function() {
+                document.getElementById('stock-message').innerHTML = '❌ Erreur lors de l\'ajout !';
+                document.getElementById('stock-message').style.color = '#e63946';
+            };
+        }
+    };
+}
+
+function gererAutreUnite(select) {
+    var autreChamp = document.getElementById('stock-unite-autre');
+    if (select.value === 'autre') {
+        autreChamp.style.display = 'block';
+        autreChamp.focus();
+    } else {
+        autreChamp.style.display = 'none';
+        autreChamp.value = '';
+    }
 }
 
 function afficherStock() {
@@ -666,7 +685,17 @@ function enregistrerVente() {
   var storeProduits = trans.objectStore('produits');
   storeVentes.add(vente);
   produitSelectionne.quantite -= quantite;
-  storeProduits.put(produitSelectionne);
+ var curseur = storeProduits.openCursor();
+curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+        if (cursor.value.nom === produitSelectionne.nom && cursor.value.unite === produitSelectionne.unite) {
+            cursor.update(produitSelectionne);
+        } else {
+            cursor.continue();
+        }
+    }
+};
   derniereVente = vente;
   trans.oncomplete = function() {
     document.getElementById('vente-message').innerHTML = '✅ Vente enregistrée !';
@@ -1262,8 +1291,18 @@ function ajouterQuantite() {
   }
   produitParamQty.quantite += quantite;
   var trans = maBase.transaction(['produits'], 'readwrite');
-  var store = trans.objectStore('produits');
-  store.put(produitParamQty);
+var store = trans.objectStore('produits');
+var curseur = store.openCursor();
+curseur.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+        if (cursor.value.nom === produitParamQty.nom && cursor.value.unite === produitParamQty.unite) {
+            cursor.update(produitParamQty);
+        } else {
+            cursor.continue();
+        }
+    }
+};
   trans.oncomplete = function() {
     document.getElementById('param-qty-message').innerHTML = '✅ Quantité ajoutée ! Nouveau stock : ' + produitParamQty.quantite + ' ' + produitParamQty.unite;
     document.getElementById('param-qty-message').style.color = '#2dc653';
@@ -1421,6 +1460,12 @@ function importerDonnees() {
 
 
   </script>
+  <script src="js/licence.js"></script>
+  <script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+}
+</script>
 
 </body>
 </html>
