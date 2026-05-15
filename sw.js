@@ -1,13 +1,13 @@
 const CACHE_NAME = 'icsoft-v1';
 const FICHIERS = [
-    '/',
-    '/index.html',
-    '/css/style.css',
-    '/js/app.js',
-    '/js/licence.js',
-    '/jspdf.min.js',
-    '/icon.svg',
-    '/manifest.json'
+    './',
+    './index.html',
+    './css/style.css',
+    './js/app.js',
+    './js/licence.js',
+    './jspdf.min.js',
+    './icon.svg',
+    './manifest.json'
 ];
 
 self.addEventListener('install', function(e) {
